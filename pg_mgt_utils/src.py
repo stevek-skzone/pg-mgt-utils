@@ -11,9 +11,6 @@ from typing import Any, Tuple, Dict, List, Optional, Union
 from passlib.utils import saslprep
 
 
-
-
-
 FLAGS = ('SUPERUSER', 'CREATEROLE', 'CREATEDB', 'INHERIT', 'LOGIN', 'REPLICATION')
 FLAGS_BY_VERSION = {'BYPASSRLS': 90500}
 
