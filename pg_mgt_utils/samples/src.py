@@ -389,23 +389,6 @@ def revoke_database_privileges(cursor, user, db, privs):
 
 
 def parse_role_attrs(role_attr_flags, srv_version):
-    """
-    Parse role attributes string for user creation.
-    Format:
-
-        attributes[,attributes,...]
-
-    Where:
-
-        attributes := CREATEDB,CREATEROLE,NOSUPERUSER,...
-        [ "[NO]SUPERUSER","[NO]CREATEROLE", "[NO]CREATEDB",
-                            "[NO]INHERIT", "[NO]LOGIN", "[NO]REPLICATION",
-                            "[NO]BYPASSRLS" ]
-
-    Note: "[NO]BYPASSRLS" role attribute introduced in 9.5
-    Note: "[NO]CREATEUSER" role attribute is deprecated.
-
-    """
     flags = frozenset(role.upper() for role in role_attr_flags.split(',') if role)
 
     valid_flags = frozenset(itertools.chain(FLAGS, get_valid_flags_by_version(srv_version)))

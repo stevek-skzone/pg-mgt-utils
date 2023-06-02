@@ -1,6 +1,8 @@
 # pg-mgt-utils
 
-WORK IN PROGESS - Using Ansible community postgresql module as basis for python package that will be used in an application for managing postgres users.
+Utilities for managing PostgreSQL users
+
+
 
 
 [![pypi](https://img.shields.io/pypi/v/pg-mgt-utils.svg)](https://pypi.org/project/pg-mgt-utils/)
@@ -21,7 +23,27 @@ PostgreSQL Mgt Utils
 
 ## Features
 
-* TODO
+- [x] Add user
+- [x] Drop user
+- [x] Alter user
+- [ ] Check user exists
+- [ ] Return user info
+- [ ] Add users
+- [ ] Drop users
+- [ ] Add Role
+- [ ] Drop role
+- [ ] Add users to role
+- [ ] Remove users from role
+- [ ] Grant database permissions to role
+- [ ] Revoke database permissions from role
+- [ ] Grant default permissions to role
+- [ ] Revoke default permssions from role
+- [ ] Write user password to Hashi Vault
+- [ ] Delete user password from Hashi Vault
+- [ ] Write encrypted password to Hashi Vault
+- [ ] Read encrypted password from Hashi Vault
+- [ ] Delete encrypted password from Hashi Vault
+- [ ] Support for Hashi Vault K/V 1 & 2 
 
 ## Credits
 
