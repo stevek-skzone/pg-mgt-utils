@@ -3,8 +3,9 @@ from typing import Any, Optional, List, Tuple
 import itertools
 import logging
 from psycopg2.extensions import AsIs
+from pg_mgt_utils.pg_common import logger, pg_quote_identifier
 
-logger = logging.getLogger(__name__)
+
 
 FLAGS = ('SUPERUSER', 'CREATEROLE', 'CREATEDB', 'INHERIT', 'LOGIN', 'REPLICATION', 'BYPASSRLS')
 
@@ -56,7 +57,7 @@ class PgRole:
         :param max_connections: The maximum number of connections allowed for the new user.
         :param expiry: The expiry date for the new user.
         """
-        query = 'CREATE USER "%s" WITH PASSWORD %s'
+        query = "CREATE USER %s WITH PASSWORD %s"
         if max_connections:
             query += f' CONNECTION LIMIT {max_connections}'
         if expiry:
@@ -66,7 +67,7 @@ class PgRole:
             query += ' ' + ' '.join([options])
         try:
             with self.conn.cursor() as cur:
-                cur.execute(query, (AsIs(username), password))
+                cur.execute(query, (AsIs(pg_quote_identifier(username, 'role')), password))
             logger.info(f"Created user {username}")
         except Exception as e:
             self.conn.rollback()
@@ -79,10 +80,10 @@ class PgRole:
 
         :param username: The username of the user to drop.
         """
-        query = 'DROP USER IF EXISTS "%s"'
+        query = "DROP USER IF EXISTS %s"
         try:
             with self.conn.cursor() as cur:
-                cur.execute(query, (AsIs(username),))
+                cur.execute(query, (AsIs(pg_quote_identifier(username, 'role')),))
             logger.info(f"Dropped user {username}")
         except Exception as e:
             self.conn.rollback()
@@ -99,7 +100,7 @@ class PgRole:
         :param max_connections: The new maximum number of connections allowed for the user.
         :param expiry: The new expiry date for the user.
         """
-        query = 'ALTER USER "%s"'
+        query = "ALTER USER %s"
         if password:
             query += ' WITH PASSWORD %s'
         if max_connections:
@@ -111,7 +112,7 @@ class PgRole:
             query += ' ' + ' '.join([options])
         try:
             with self.conn.cursor() as cur:
-                cur.execute(query, (AsIs(username), password))
+                cur.execute(query, (AsIs(pg_quote_identifier(username,'role')), password))
             logger.info(f"Altered user {username}")
         except Exception as e:
             self.conn.rollback()
@@ -124,9 +125,10 @@ class PgRole:
 
         :param rolename: The name of the new role.
         """
-        query = f"CREATE ROLE {rolename}"
+        query = "CREATE ROLE %s"
         try:
-            self.execute_query(query)
+            with self.conn.cursor() as cur:
+                cur.execute(query, (AsIs(pg_quote_identifier(rolename,'role')),))
             logging.info(f"Created role {rolename}")
         except Exception as e:
             logging.error(f"Failed to create role {rolename}: {e}")
@@ -138,43 +140,66 @@ class PgRole:
 
         :param rolename: The name of the role to drop.
         """
-        query = f"DROP ROLE {rolename}"
+        query = "DROP ROLE %s"
         try:
-            self.execute_query(query)
+            with self.conn.cursor() as cur:
+                cur.execute(query, (AsIs(pg_quote_identifier(rolename, 'role')),))
             logging.info(f"Dropped role {rolename}")
         except Exception as e:
             logging.error(f"Failed to drop role {rolename}: {e}")
             raise e
 
-    def add_users_to_role(self, rolename: str, *usernames: str) -> None:
+    def add_user_to_role(self, rolename: str, username: str) -> None:
+        """
+        Adds a PostgreSQL user with the specified username to an existing PostgreSQL role with the specified rolename.
+
+        :param rolename: The name of the role to add the user to.
+        :param username: The username of the user to add to the role.
+        """
+        query = "GRANT %s TO %s"
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(query, (AsIs(pg_quote_identifier(rolename, 'role')), AsIs(pg_quote_identifier(username, 'role'))))
+            logging.info(f"Added user {username} to role {rolename}")
+        except Exception as e:
+            logging.error(f"Failed to add user {username} to role {rolename}: {e}")
+            raise e
+
+    def add_users_to_role(self, rolename: str, usernames: List[str]) -> None:
         """
         Adds one or more PostgreSQL users with the specified usernames to an existing PostgreSQL role with the specified rolename.
 
         :param rolename: The name of the role to add users to.
         :param usernames: The usernames of the users to add to the role.
         """
-        query = f"GRANT {rolename} TO {', '.join(usernames)}"
-        try:
-            self.execute_query(query)
-            logging.info(f"Added users {', '.join(usernames)} to role {rolename}")
-        except Exception as e:
-            logging.error(f"Failed to add users {', '.join(usernames)} to role {rolename}: {e}")
-            raise e
+        for username in usernames:
+            self.add_user_to_role(rolename, username)
 
-    def remove_users_from_role(self, rolename: str, *usernames: str) -> None:
+    def remove_user_from_role(self, rolename: str, username: str) -> None:
         """
         Removes one or more PostgreSQL users with the specified usernames from an existing PostgreSQL role with the specified rolename.
 
         :param rolename: The name of the role to remove users from.
         :param usernames: The usernames of the users to remove from the role.
         """
-        query = f"REVOKE {rolename} FROM {', '.join(usernames)}"
+        query = "REVOKE %s FROM %s"
         try:
-            self.execute_query(query)
-            logging.info(f"Removed users {', '.join(usernames)} from role {rolename}")
+            with self.conn.cursor() as cur:
+                cur.execute(query, (AsIs(pg_quote_identifier(rolename, 'role')), AsIs(pg_quote_identifier(username, 'role'))))
+            logging.info(f"Removed user {username} from role {rolename}")
         except Exception as e:
-            logging.error(f"Failed to remove users {', '.join(usernames)} from role {rolename}: {e}")
+            logging.error(f"Failed to remove user {username} from role {rolename}: {e}")
             raise e
+
+    def remove_users_to_role(self, rolename: str, usernames: List[str]) -> None:
+        """
+        Removes one or more PostgreSQL users with the specified usernames from an existing PostgreSQL role with the specified rolename.
+
+        :param rolename: The name of the role to remove users to.
+        :param usernames: The usernames of the users to remove from the role.
+        """
+        for username in usernames:
+            self.remove_user_from_role(rolename, username)
 
     def grant_database_permissions_to_role(self, rolename: str, database: str, permissions: str) -> None:
         """
@@ -184,9 +209,10 @@ class PgRole:
         :param database: The name of the database to grant permissions on.
         :param permissions: The permissions to grant.
         """
-        query = f"GRANT {permissions} ON DATABASE {database} TO {rolename}"
+        query = "GRANT %s ON DATABASE %s TO %s"
         try:
-            self.execute_query(query)
+            with self.conn.cursor() as cur:
+                cur.execute(query, (permissions, pg_quote_identifier(database, 'database'), pg_quote_identifier(rolename, 'role')))
             logging.info(f"Granted {permissions} permissions on database {database} to role {rolename}")
         except Exception as e:
             logging.error(f"Failed to grant {permissions} permissions on database {database} to role {rolename}: {e}")
@@ -200,9 +226,10 @@ class PgRole:
         :param database: The name of the database to revoke permissions on.
         :param permissions: The permissions to revoke.
         """
-        query = f"REVOKE {permissions} ON DATABASE {database} FROM {rolename}"
+        query = "REVOKE %s ON DATABASE %s FROM %s"
         try:
-            self.execute_query(query)
+            with self.conn.cursor() as cur:
+                cur.execute(query, (permissions, pg_quote_identifier(database, 'database'), pg_quote_identifier(rolename, 'role')))
             logging.info(f"Revoked {permissions} permissions on database {database} from role {rolename}")
         except Exception as e:
             logging.error(f"Failed to revoke {permissions} permissions on database {database} from role {rolename}: {e}")
@@ -216,9 +243,10 @@ class PgRole:
         :param schema: The name of the schema to grant permissions on.
         :param permissions: The permissions to grant.
         """
-        query = f"GRANT {permissions} ON SCHEMA {schema} TO {rolename}"
+        query = "GRANT %s ON SCHEMA %s TO %s"
         try:
-            self.execute_query(query)
+            with self.conn.cursor() as cur:
+                cur.execute(query, (permissions, pg_quote_identifier(schema, 'schema'), pg_quote_identifier(rolename, 'role')))
             logging.info(f"Granted {permissions} permissions on schema {schema} to role {rolename}")
         except Exception as e:
             logging.error(f"Failed to grant {permissions} permissions on schema {schema} to role {rolename}: {e}")
@@ -232,9 +260,10 @@ class PgRole:
         :param schema: The name of the schema to revoke permissions on.
         :param permissions: The permissions to revoke.
         """
-        query = f"REVOKE {permissions} ON SCHEMA {schema} FROM {rolename}"
+        query = "REVOKE %s ON SCHEMA %s FROM %s"
         try:
-            self.execute_query(query)
+            with self.conn.cursor() as cur:
+                cur.execute(query, (permissions, pg_quote_identifier(schema, 'schema'), pg_quote_identifier(rolename, 'role')))
             logging.info(f"Revoked {permissions} permissions on schema {schema} from role {rolename}")
         except Exception as e:
             logging.error(f"Failed to revoke {permissions} permissions on schema {schema} from role {rolename}: {e}")
@@ -247,10 +276,12 @@ class PgRole:
         :param username: The username of the user to check.
         :return: True if the user exists, False otherwise.
         """
-        query = f"SELECT 1 FROM pg_roles WHERE rolname='{username}'"
+        query = "SELECT 1 FROM pg_roles WHERE rolname=%s"
         try:
-            result = self.execute_query(query)
-            return bool(result)
+            with self.conn.cursor() as cur:
+                cur.execute(query, (pg_quote_identifier(username, 'user'),))
+                result = cur.fetchone()
+                return bool(result)
         except Exception as e:
             logging.error(f"Failed to check if user {username} exists: {e}")
             raise e
@@ -262,10 +293,12 @@ class PgRole:
         :param username: The username of the user to return information for.
         :return: A list of tuples containing the user's attributes.
         """
-        query = f"SELECT * FROM pg_roles WHERE rolname='{username}'"
+        query = "SELECT * FROM pg_roles WHERE rolname=%s"
         try:
-            result = self.execute_query(query)
-            return result
+            with self.conn.cursor() as cur:
+                cur.execute(query, (pg_quote_identifier(username, 'user'),))
+                result = cur.fetchall()
+                return result
         except Exception as e:
             logging.error(f"Failed to return info for user {username}: {e}")
             raise e

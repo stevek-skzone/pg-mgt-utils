@@ -3,13 +3,11 @@ import logging
 import psycopg2
 from psycopg2.extras import DictCursor, DictRow
 from typing import List, Any, Tuple, Optional
-from .pg_role import PgRole
 import os
+from .pg_role import PgRole
 
-log_level = os.environ.get('LOG_LEVEL', 'INFO')
-logging.basicConfig(level=log_level)
 
-logger = logging.getLogger(__name__)
+
 
 
 
