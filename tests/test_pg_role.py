@@ -27,7 +27,7 @@ def pg_scram_sha256(passwd: str) -> str:
 
 
 @pytest.fixture(scope='session')
-def pg_client(docker_containers):
+def pg_client(docker_compose):
     client = PgClient('localhost', 'postgres', 'Password123', 'postgres')
     yield client
     client.close_connection()

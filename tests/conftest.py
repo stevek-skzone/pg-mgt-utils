@@ -1,47 +1,58 @@
 import pytest
 import docker
-from pathlib import Path
+import subprocess
 import os
+import psycopg
+import time
 
-
-
-COMPOSE_FILE = "docker-compose.yml"
-
+@pytest.fixture(scope="session")
+def docker_client():
+    return docker.from_env()
 
 @pytest.fixture(scope="session")
 def docker_compose_file(pytestconfig):
-    return os.path.join(str(pytestconfig.rootdir), COMPOSE_FILE)
-
-@pytest.fixture(scope="session", autouse=True)
-def cleanup_previous_containers():
-    client = docker.from_env()
-    container_name_pattern = "pytest"
-    network_name_pattern = "pytest_docker_compose"
-
-    for container in client.containers.list(all=True):
-        if container_name_pattern in container.name:
-            container.stop()
-            container.remove()
-
-    # Remove the network
-    for network in client.networks.list():
-        if network_name_pattern in network.name:
-            network.remove()
-
-    yield
-
+    return str(pytestconfig.rootdir.join("docker-compose.yml"))
 
 @pytest.fixture(scope="session")
-def docker_containers(cleanup_previous_containers, docker_compose_file):
-    containers = {}
+def docker_compose(docker_client, docker_compose_file):
+    # Start the Docker containers
+    subprocess.run(["docker-compose", "up", "-d"], cwd=os.path.dirname(os.path.abspath(__file__)))
 
-    containers['postgres'] = {"host": "localhost", "port": 5432}
+    # Wait for the containers to start up
+    max_retries = 10
+    retry_count = 0
+    while retry_count < max_retries:
+        try:
+            postgres_container = docker_client.containers.get("pg-mgt-utils_postgres_1")
+            if postgres_container.status == "running":
+                break
+        except:
+            pass
+        retry_count += 1
+        time.sleep(1)
+    else:
+        raise Exception("Docker containers did not start up")
 
-    yield containers
+    while retry_count < max_retries:
+        try:
+            conn = psycopg.connect(
+                host="0.0.0.0",
+                port=5432,
+                user="postgres",
+                password="Password123",
+                dbname="postgres"
+            )
+            conn.close()
+            break
+        except:
+            pass
+        time.sleep(1)
+        retry_count += 1
+    else:
+        raise Exception("PostgreSQL did not start up correctly")
 
-    client = docker.from_env()
-    for container in client.containers.list(filters={"label": "pytest_docker_compose"}):
-        container.stop()
-        container.remove()
 
+    yield docker_compose_file
 
+    # Stop and remove the Docker containers
+    subprocess.run(["docker-compose", "down"], cwd=os.path.dirname(os.path.abspath(__file__)))
