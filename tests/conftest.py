@@ -15,6 +15,8 @@ def docker_compose_file(pytestconfig):
 
 @pytest.fixture(scope="session")
 def docker_compose(docker_client, docker_compose_file):
+    # Make sure the Docker containers are stopped and removed before starting
+    subprocess.run(["docker-compose", "down"], cwd=os.path.dirname(os.path.abspath(__file__)))
     # Start the Docker containers
     subprocess.run(["docker-compose", "up", "-d"], cwd=os.path.dirname(os.path.abspath(__file__)))
 

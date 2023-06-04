@@ -45,26 +45,26 @@ class PgClient:
     def drop_role(self, rolename: str) -> None:
         self.role.drop_role(rolename)
 
-    # def add_users_to_role(self, rolename: str, *usernames: str) -> None:
-    #     self.role.add_users_to_role(rolename, *usernames)
+    def add_users_to_role(self, rolename: str, usernames: List[str]) -> None:
+        self.role.add_users_to_role(rolename, usernames)
 
-    # def remove_users_from_role(self, rolename: str, *usernames: str) -> None:
-    #     self.role.remove_users_from_role(rolename, *usernames)
+    def remove_users_from_role(self, rolename: str, usernames: List[str]) -> None:
+        self.role.remove_users_from_role(rolename, usernames)
 
-    # def grant_database_permissions_to_role(self, rolename: str, database: str, permissions: str) -> None:
-    #     self.role.grant_database_permissions_to_role(rolename, database, permissions)
+    def grant_database_permissions_to_role(self, rolename: str, database: str, permissions: str) -> None:
+        self.role.grant_database_permissions_to_role(rolename, database, permissions)
 
-    # def revoke_database_permissions_from_role(self, rolename: str, database: str, permissions: str) -> None:
-    #     self.role.revoke_database_permissions_from_role(rolename, database, permissions)
+    def revoke_database_permissions_from_role(self, rolename: str, database: str, permissions: str) -> None:
+        self.role.revoke_database_permissions_from_role(rolename, database, permissions)
 
-    # def grant_default_permissions_to_role(self, rolename: str, schema: str, permissions: str) -> None:
-    #     self.role.grant_default_permissions_to_role(rolename, schema, permissions)
+    def grant_default_permissions_to_role(self, rolename: str, schema: str, permissions: str) -> None:
+        self.role.grant_default_permissions_to_role(rolename, schema, permissions)
 
-    # def revoke_default_permissions_from_role(self, rolename: str, schema: str, permissions: str) -> None:
-    #     self.role.revoke_default_permissions_from_role(rolename, schema, permissions)
+    def revoke_default_permissions_from_role(self, rolename: str, schema: str, permissions: str) -> None:
+        self.role.revoke_default_permissions_from_role(rolename, schema, permissions)
 
-    # def check_user_exists(self, username: str) -> bool:
-    #     return self.role.check_user_exists(username)
+    def check_user_exists(self, username: str) -> bool:
+        return self.role.check_user_exists(username)
 
-    # def return_user_info(self, username: str) -> DictRow:
-    #     return self.role.return_user_info(username)
+    def return_user_info(self, username: str) -> List[tuple]:
+        return self.role.return_user_info(username)
