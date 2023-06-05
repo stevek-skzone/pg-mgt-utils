@@ -23,7 +23,7 @@ PostgreSQL Mgt Utils
 
 ## Features
 
-- [x] Add user
+- [x] Create user
 - [x] Drop user
 - [x] Alter user
 - [ ] Check user exists
@@ -38,6 +38,8 @@ PostgreSQL Mgt Utils
 - [ ] Revoke database permissions from role
 - [ ] Grant default permissions to role
 - [ ] Revoke default permssions from role
+- [ ] Check object ownership for user
+- [ ] reassign object ownership for user
 - [ ] Write user password to Hashi Vault
 - [ ] Delete user password from Hashi Vault
 - [ ] Write encrypted password to Hashi Vault

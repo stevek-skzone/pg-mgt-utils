@@ -1,13 +1,10 @@
 """Main module."""
 import psycopg
 from psycopg.rows import dict_row
-from typing import List, Any, Tuple, Optional
-import os
+from datetime import datetime
+from typing import List, Any, Optional, Dict
 from .pg_role import PgRole
-
-
-
-
+from .pg_database import PgDatabase
 
 
 class PgClient:
@@ -17,6 +14,7 @@ class PgClient:
         self.conn = psycopg.connect(self.url)
         self.conn.autocommit = self.autocommit
         self.role = PgRole(self.conn)
+        self.database = PgDatabase(self.conn)
 
     def execute_query(self, query: str) -> List[dict_row]:
         with self.conn.cursor(row_factory=dict_row) as cur:
@@ -30,17 +28,17 @@ class PgClient:
     def close_connection(self) -> None:
         self.conn.close()
 
-    def create_user(self, username: str, password: str, options: Optional[str] = None, max_connections: Optional[int] = None, expiry: Optional[str] = None) -> None:
+    def create_user(self, username: str, password: str, options: Optional[str] = None, max_connections: Optional[int] = None, expiry: Optional[datetime] = None) -> None:
         self.role.create_user(username, password, options, max_connections, expiry)
 
     def drop_user(self, username: str) -> None:
         self.role.drop_user(username)
 
-    def alter_user(self, username: str, password: Optional[str] = None, options: Optional[str] = None, max_connections: Optional[int] = None, expiry: Optional[str] = None) -> None:
+    def alter_user(self, username: str, password: Optional[str] = None, options: Optional[str] = None, max_connections: Optional[int] = None, expiry: Optional[datetime] = None) -> None:
         self.role.alter_user(username, password, options, max_connections, expiry)
 
-    def add_role(self, rolename: str) -> None:
-        self.role.add_role(rolename)
+    def create_role(self, rolename: str) -> None:
+        self.role.create_role(rolename)
 
     def drop_role(self, rolename: str) -> None:
         self.role.drop_role(rolename)
@@ -68,3 +66,24 @@ class PgClient:
 
     def return_user_info(self, username: str) -> List[tuple]:
         return self.role.return_user_info(username)
+
+    def create_database(self, dbname: str, owner: Optional[str] = None, 
+                        encoding: Optional[str] = None, 
+                        connection_limit: Optional[int] = None) -> None:
+        self.database.create_database(dbname, owner, encoding, connection_limit)
+
+    def drop_database(self, dbname: str) -> None:
+        self.database.drop_database(dbname)
+
+    def alter_database(self, dbname: str, owner: Optional[str] = None,
+                          encoding: Optional[str] = None,
+                          connection_limit: Optional[int] = None) -> None:
+          self.database.alter_database(dbname, owner, encoding, connection_limit)
+
+    def check_database_exists(self, dbname: str) -> bool:
+        return self.database.check_database_exists(dbname)
+    
+    def return_database_info(self, dbname: str) -> List[Dict[str, Any]]:
+        return self.database.return_database_info(dbname)
+
+    
