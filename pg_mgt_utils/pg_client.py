@@ -1,10 +1,12 @@
 """Main module."""
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 import psycopg
 from psycopg.rows import dict_row
-from datetime import datetime
-from typing import List, Any, Optional, Dict
-from .pg_role import PgRole
+
 from .pg_database import PgDatabase
+from .pg_role import PgRole
 
 
 class PgClient:
@@ -28,13 +30,27 @@ class PgClient:
     def close_connection(self) -> None:
         self.conn.close()
 
-    def create_user(self, username: str, password: str, options: Optional[str] = None, max_connections: Optional[int] = None, expiry: Optional[datetime] = None) -> None:
+    def create_user(
+        self,
+        username: str,
+        password: str,
+        options: Optional[str] = None,
+        max_connections: Optional[int] = None,
+        expiry: Optional[datetime] = None,
+    ) -> None:
         self.role.create_user(username, password, options, max_connections, expiry)
 
     def drop_user(self, username: str) -> None:
         self.role.drop_user(username)
 
-    def alter_user(self, username: str, password: Optional[str] = None, options: Optional[str] = None, max_connections: Optional[int] = None, expiry: Optional[datetime] = None) -> None:
+    def alter_user(
+        self,
+        username: str,
+        password: Optional[str] = None,
+        options: Optional[str] = None,
+        max_connections: Optional[int] = None,
+        expiry: Optional[datetime] = None,
+    ) -> None:
         self.role.alter_user(username, password, options, max_connections, expiry)
 
     def create_role(self, rolename: str) -> None:
@@ -55,11 +71,13 @@ class PgClient:
     def revoke_database_permissions_from_role(self, rolename: str, database: str, permissions: str) -> None:
         self.role.revoke_database_permissions_from_role(rolename, database, permissions)
 
-    def grant_default_permissions_to_role(self, rolename: str, schema: str, permissions: str) -> None:
-        self.role.grant_default_permissions_to_role(rolename, schema, permissions)
+    # To be implemented
 
-    def revoke_default_permissions_from_role(self, rolename: str, schema: str, permissions: str) -> None:
-        self.role.revoke_default_permissions_from_role(rolename, schema, permissions)
+    # def grant_default_permissions_to_role(self, rolename: str, schema: str, permissions: str) -> None:
+    #     self.role.grant_default_permissions_to_role(rolename, schema, permissions)
+
+    # def revoke_default_permissions_from_role(self, rolename: str, schema: str, permissions: str) -> None:
+    #     self.role.revoke_default_permissions_from_role(rolename, schema, permissions)
 
     def check_user_exists(self, username: str) -> bool:
         return self.role.check_user_exists(username)
@@ -67,23 +85,29 @@ class PgClient:
     def return_user_info(self, username: str) -> List[tuple]:
         return self.role.return_user_info(username)
 
-    def create_database(self, dbname: str, owner: Optional[str] = None, 
-                        encoding: Optional[str] = None, 
-                        connection_limit: Optional[int] = None) -> None:
+    def create_database(
+        self,
+        dbname: str,
+        owner: Optional[str] = None,
+        encoding: Optional[str] = None,
+        connection_limit: Optional[int] = None,
+    ) -> None:
         self.database.create_database(dbname, owner, encoding, connection_limit)
 
     def drop_database(self, dbname: str) -> None:
         self.database.drop_database(dbname)
 
-    def alter_database(self, dbname: str, owner: Optional[str] = None,
-                          encoding: Optional[str] = None,
-                          connection_limit: Optional[int] = None) -> None:
-          self.database.alter_database(dbname, owner, encoding, connection_limit)
+    def alter_database(
+        self,
+        dbname: str,
+        owner: Optional[str] = None,
+        encoding: Optional[str] = None,
+        connection_limit: Optional[int] = None,
+    ) -> None:
+        self.database.alter_database(dbname, owner, encoding, connection_limit)
 
     def check_database_exists(self, dbname: str) -> bool:
         return self.database.check_database_exists(dbname)
-    
+
     def return_database_info(self, dbname: str) -> List[Dict[str, Any]]:
         return self.database.return_database_info(dbname)
-
-    

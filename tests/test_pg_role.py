@@ -167,40 +167,40 @@ def test_revoke_database_permissions_from_role(pg_client):
         pg_client.revoke_database_permissions_from_role('testuser', 'nonexistingdb', 'ALL')
 
 
-def test_grant_default_permissions_to_role(pg_client):
-    # Test granting default permissions to an existing role on an existing schema
-    pg_client.create_role('testrole1')
-    #pg_client.create_schema('testschema')
-    pg_client.grant_default_permissions_to_role('testrole1', 'public', 'SELECT')
-    result = pg_client.execute_query("SELECT * FROM information_schema.schema_privileges")
-    assert len(result) == 1
-    assert result[0]['privilege_type'] == 'SELECT'
+# def test_grant_default_permissions_to_role(pg_client):
+#     # Test granting default permissions to an existing role on an existing schema
+#     pg_client.create_role('testrole1')
+#     #pg_client.create_schema('testschema')
+#     pg_client.grant_default_permissions_to_role('testrole1', 'public', 'SELECT')
+#     result = pg_client.execute_query("SELECT * FROM information_schema.schema_privileges")
+#     assert len(result) == 1
+#     assert result[0]['privilege_type'] == 'SELECT'
 
-    # Test granting default permissions to a non-existing role on an existing schema
-    with pytest.raises(Exception):
-        pg_client.grant_default_permissions_to_role('nonexistinguser', 'public', 'SELECT')
+#     # Test granting default permissions to a non-existing role on an existing schema
+#     with pytest.raises(Exception):
+#         pg_client.grant_default_permissions_to_role('nonexistinguser', 'public', 'SELECT')
 
-    # Test granting default permissions to an existing role on a non-existing schema
-    with pytest.raises(Exception):
-        pg_client.grant_default_permissions_to_role('testrole1', 'nonexistingschema', 'SELECT')
+#     # Test granting default permissions to an existing role on a non-existing schema
+#     with pytest.raises(Exception):
+#         pg_client.grant_default_permissions_to_role('testrole1', 'nonexistingschema', 'SELECT')
 
 
-def test_revoke_default_permissions_from_role(pg_client):
-    # Test revoking default permissions from an existing role on an existing schema
-    pg_client.create_role('testrole2')
-    #pg_client.create_schema('testschema')
-    pg_client.grant_default_permissions_to_role('testrole2', 'public', 'SELECT')
-    pg_client.revoke_default_permissions_from_role('testrole2', 'public', 'SELECT')
-    result = pg_client.execute_query("SELECT * FROM information_schema.schema_privileges")
-    assert len(result) == 0
+# def test_revoke_default_permissions_from_role(pg_client):
+#     # Test revoking default permissions from an existing role on an existing schema
+#     pg_client.create_role('testrole2')
+#     #pg_client.create_schema('testschema')
+#     pg_client.grant_default_permissions_to_role('testrole2', 'public', 'SELECT')
+#     pg_client.revoke_default_permissions_from_role('testrole2', 'public', 'SELECT')
+#     result = pg_client.execute_query("SELECT * FROM information_schema.schema_privileges")
+#     assert len(result) == 0
 
-    # Test revoking default permissions from a non-existing role on an existing schema
-    with pytest.raises(Exception):
-        pg_client.revoke_default_permissions_from_role('nonexistinguser', 'public', 'SELECT')
+#     # Test revoking default permissions from a non-existing role on an existing schema
+#     with pytest.raises(Exception):
+#         pg_client.revoke_default_permissions_from_role('nonexistinguser', 'public', 'SELECT')
 
-    # Test revoking default permissions from an existing role on a non-existing schema
-    with pytest.raises(Exception):
-        pg_client.revoke_default_permissions_from_role('testrole2', 'nonexistingschema', 'SELECT')
+#     # Test revoking default permissions from an existing role on a non-existing schema
+#     with pytest.raises(Exception):
+#         pg_client.revoke_default_permissions_from_role('testrole2', 'nonexistingschema', 'SELECT')
 
 # def test_execute_query(pg_client):
 #     pg_client.execute_query('DROP TABLE IF EXISTS test_table')

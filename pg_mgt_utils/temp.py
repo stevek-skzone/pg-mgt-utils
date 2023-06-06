@@ -1,6 +1,8 @@
-import psycopg2
 import logging
 from typing import List, Tuple
+
+import psycopg2
+
 
 class PgRole:
     def __init__(self, conn: psycopg2.extensions.connection):
@@ -103,7 +105,9 @@ class PgRole:
             self.execute_query(query, (permissions, database, rolename))
             logging.info(f"Revoked {permissions} permissions on database {database} from role {rolename}")
         except Exception as e:
-            logging.error(f"Failed to revoke {permissions} permissions on database {database} from role {rolename}: {e}")
+            logging.error(
+                f"Failed to revoke {permissions} permissions on database {database} from role {rolename}: {e}"
+            )
             raise e
 
     def grant_default_permissions_to_role(self, rolename: str, schema: str, permissions: str) -> None:

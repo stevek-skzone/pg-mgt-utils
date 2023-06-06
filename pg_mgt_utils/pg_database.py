@@ -1,15 +1,17 @@
-from typing import Any, Optional, List, Tuple, Dict
-from psycopg import sql
-from pg_mgt_utils.pg_common import logger, parse_options, validate_encoding
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
+
+from psycopg import sql
 from psycopg.rows import dict_row
 
+from pg_mgt_utils.pg_common import logger, parse_options, validate_encoding
 
 
 class PgDatabase:
     """
     A class for managing PostgreSQL roles and users.
     """
+
     def __init__(self, conn: Any):
         """
         Initializes a new instance of the PgRole class.
@@ -18,9 +20,13 @@ class PgDatabase:
         """
         self.conn = conn
 
-    def create_database(self, dbname: str, owner: Optional[str] = None, 
-                        encoding: Optional[str] = None, 
-                        connection_limit: Optional[int] = None) -> None:
+    def create_database(
+        self,
+        dbname: str,
+        owner: Optional[str] = None,
+        encoding: Optional[str] = None,
+        connection_limit: Optional[int] = None,
+    ) -> None:
         """
         Creates a new PostgreSQL database with the specified name and options.
 
@@ -60,9 +66,13 @@ class PgDatabase:
             logger.error(f"Failed to drop database {dbname}")
             raise e
 
-    def alter_database(self, dbname: str, owner: Optional[str] = None, 
-                        encoding: Optional[str] = None, 
-                        connection_limit: Optional[int] = None) -> None:
+    def alter_database(
+        self,
+        dbname: str,
+        owner: Optional[str] = None,
+        encoding: Optional[str] = None,
+        connection_limit: Optional[int] = None,
+    ) -> None:
         """
         Alters an existing PostgreSQL database with the specified name and options.
 
@@ -71,6 +81,7 @@ class PgDatabase:
         :param encoding: The character encoding to use for the new database.
         :param connection_limit: The maximum number of concurrent connections allowed for the new database.
         """
+        query = "ALTER DATABASE {}"
         if owner:
             query += f' OWNER {sql.Identifier(owner)}'
         if encoding and validate_encoding(encoding):
@@ -95,7 +106,7 @@ class PgDatabase:
         query = "SELECT COUNT(*) FROM pg_database WHERE datname = %s"
         try:
             result = self.conn.execute(query, (dbname,)).fetchone()
-            return bool(result)
+            return bool(result[0])
         except Exception as e:
             logger.error(f"Failed to check if user {dbname} exists: {e}")
             raise e
@@ -108,13 +119,13 @@ class PgDatabase:
         :return: A list of dictionaries containing information about the database.
         """
         query = """
-            SELECT datname, pg_encoding_to_char(encoding) AS encoding, datcollate, datctype, datistemplate,
-            datallowconn, datconnlimit, datlastsysoid, datfrozenxid, datminmxid, dattablespace, datacl
+            SELECT datname, pg_get_userbyid(datdba) AS owner, pg_encoding_to_char(encoding) AS encoding, datcollate, 
+            datctype, datistemplate, datallowconn, datconnlimit, datfrozenxid, datminmxid, dattablespace, datacl
             FROM pg_database WHERE datname = %s
         """
         try:
             with self.conn.cursor(row_factory=dict_row) as cur:
-                result = cur.execute(query, (dbname, )).fetchall()
+                result = cur.execute(query, (dbname,)).fetchall()
                 return result
         except Exception as e:
             logger.error(f"Failed to return info for database {dbname}: {e}")
