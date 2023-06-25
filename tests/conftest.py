@@ -1,17 +1,21 @@
-import pytest
-import docker
-import subprocess
 import os
-import psycopg
+import subprocess
 import time
+
+import docker
+import psycopg
+import pytest
+
 
 @pytest.fixture(scope="session")
 def docker_client():
     return docker.from_env()
 
+
 @pytest.fixture(scope="session")
 def docker_compose_file(pytestconfig):
     return str(pytestconfig.rootdir.join("docker-compose.yml"))
+
 
 @pytest.fixture(scope="session")
 def docker_compose(docker_client, docker_compose_file):
@@ -38,11 +42,7 @@ def docker_compose(docker_client, docker_compose_file):
     while retry_count < max_retries:
         try:
             conn = psycopg.connect(
-                host="0.0.0.0",
-                port=5432,
-                user="postgres",
-                password="Password123",
-                dbname="postgres"
+                host="0.0.0.0", port=5432, user="postgres", password="Password123", dbname="postgres"
             )
             conn.close()
             break
@@ -52,7 +52,6 @@ def docker_compose(docker_client, docker_compose_file):
         retry_count += 1
     else:
         raise Exception("PostgreSQL did not start up correctly")
-
 
     yield docker_compose_file
 

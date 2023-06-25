@@ -47,13 +47,13 @@ def _return_valid_options(type: str) -> frozenset:
     return choice[type]
 
 
-def parse_options(options: str, type: str, separator: str = ' ') -> str:
+def parse_options(options: str, option_type: str, separator: str = ' ') -> str:
     """
     Parses a string of options and returns a string with the valid options separated by a specified separator.
 
     Args:
         options (str): A string of options separated by commas.
-        type (str): The type of options to parse. Valid values are 'database', 'role', and 'object'.
+        option_type (str): The type of options to parse. Valid values are 'database', 'role', and 'object'.
         separator (str, optional): The separator to use between the valid options. Defaults to ' '.
 
     Returns:
@@ -62,13 +62,13 @@ def parse_options(options: str, type: str, separator: str = ' ') -> str:
     Raises:
         InvalidOptionsError: If any of the options specified are not valid for the specified type.
     """
-    valid_options = _return_valid_options(type)
-    options = frozenset(option.upper() for option in options.split(','))
+    valid_options = _return_valid_options(option_type)
+    options_set = frozenset(option.upper() for option in options.split(','))
 
-    if not options.issubset(valid_options):
-        raise InvalidOptionsError('Invalid options specified: %s' % ' '.join(options.difference(valid_options)))
+    if not options_set.issubset(valid_options):
+        raise InvalidOptionsError('Invalid options specified: %s' % ' '.join(options_set.difference(valid_options)))
 
-    return separator.join(options)
+    return separator.join(options_set)
 
 
 def validate_encoding(encoding: str) -> bool:

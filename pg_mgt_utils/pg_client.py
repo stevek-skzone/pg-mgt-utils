@@ -18,9 +18,9 @@ class PgClient:
         self.role = PgRole(self.conn)
         self.database = PgDatabase(self.conn)
 
-    def execute_query(self, query: str) -> List[dict_row]:
+    def execute_query(self, query: str) -> List[Any]:
         with self.conn.cursor(row_factory=dict_row) as cur:
-            cur.execute(query)
+            cur.execute(query)  # type: ignore
             if cur.description:
                 result = cur.fetchall()
             else:

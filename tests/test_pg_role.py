@@ -15,15 +15,11 @@ def pg_scram_sha256(passwd: str) -> str:
     digest_len = 32
     iterations = 4096
     salt = urandom(salt_size)
-    digest_key = pbkdf2_hmac('sha256', passwd.encode('utf8'), salt, iterations,
-                             digest_len)
+    digest_key = pbkdf2_hmac('sha256', passwd.encode('utf8'), salt, iterations, digest_len)
     client_key = hmac.digest(digest_key, 'Client Key'.encode('utf8'), 'sha256')
     stored_key = sha256(client_key).digest()
     server_key = hmac.digest(digest_key, 'Server Key'.encode('utf8'), 'sha256')
-    return (
-        f'SCRAM-SHA-256${iterations}:{b64enc(salt)}'
-        f'${b64enc(stored_key)}:{b64enc(server_key)}'
-    )
+    return f'SCRAM-SHA-256${iterations}:{b64enc(salt)}' f'${b64enc(stored_key)}:{b64enc(server_key)}'
 
 
 @pytest.fixture(scope='session')
@@ -37,7 +33,7 @@ def test_create_user(pg_client):
     pg_client.drop_user('testusercreate')
     pg_client.create_user('testusercreate', 'testpass')
     result = pg_client.execute_query("SELECT * FROM pg_roles WHERE rolname = 'testusercreate'")
-    
+
     assert len(result) == 1
 
 
@@ -53,13 +49,16 @@ def test_alter_user(pg_client):
     pg_client.create_user('testuseralter', 'testpass')
 
     new_pass = pg_scram_sha256('newpass')
-    pg_client.alter_user('testuseralter', password=new_pass, options='NOSUPERUSER', max_connections=10, expiry='2022-01-01')
+    pg_client.alter_user(
+        'testuseralter', password=new_pass, options='NOSUPERUSER', max_connections=10, expiry='2022-01-01'
+    )
     result = pg_client.execute_query("SELECT * FROM pg_authid WHERE rolname = 'testuseralter'")
     print(result)
     assert len(result) == 1
     assert result[0]['rolpassword'] == new_pass
     assert result[0]['rolconnlimit'] == 10
     assert str(result[0]['rolvaliduntil']) == '2022-01-01 00:00:00+00:00'
+
 
 def test_check_user_exists(pg_client):
     # Test checking if an existing user exists
@@ -88,7 +87,9 @@ def test_add_users_to_role(pg_client):
     pg_client.create_user('testuserar2', 'testpass')
     pg_client.create_role('testrolear')
     pg_client.add_users_to_role('testrolear', ['testuserar1', 'testuserar2'])
-    result = pg_client.execute_query("SELECT * FROM pg_auth_members WHERE roleid = (SELECT oid FROM pg_roles WHERE rolname = 'testrolear')")
+    result = pg_client.execute_query(
+        "SELECT * FROM pg_auth_members WHERE roleid = (SELECT oid FROM pg_roles WHERE rolname = 'testrolear')"
+    )
     assert len(result) == 2
 
     # Test adding multiple users to a non-existing role
@@ -102,8 +103,6 @@ def test_add_users_to_role(pg_client):
     assert 'role "nonexistinguser" does not exist' in str(e.value)
 
 
-
-
 def test_remove_users_from_role(pg_client):
     # Test removing multiple users from an existing role
     pg_client.create_user('testuserrr1', 'testpass')
@@ -111,7 +110,9 @@ def test_remove_users_from_role(pg_client):
     pg_client.create_role('testrolerr')
     pg_client.add_users_to_role('testrolerr', ['testuserrr1', 'testuserrr2'])
     pg_client.remove_users_from_role('testrolerr', ['testuserrr1', 'testuserrr2'])
-    result = pg_client.execute_query("SELECT * FROM pg_auth_members WHERE roleid = (SELECT oid FROM pg_roles WHERE rolname = 'testrolerr')")
+    result = pg_client.execute_query(
+        "SELECT * FROM pg_auth_members WHERE roleid = (SELECT oid FROM pg_roles WHERE rolname = 'testrolerr')"
+    )
     assert len(result) == 0
 
     # Test removing multiple users from a non-existing role
@@ -209,7 +210,6 @@ def test_revoke_database_permissions_from_role(pg_client):
 #     result = pg_client.execute_query('SELECT * FROM test_table')
 #     assert len(result) == 1
 #     assert result[0]['name'] == 'test'
-
 
 
 # def test_create_user_error_handling(pg_client):
