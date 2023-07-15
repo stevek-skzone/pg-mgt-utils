@@ -39,7 +39,10 @@ class PgClient:
     def execute_query(self, query: str) -> List[Any]:
         """Executes a query and returns the results."""
         with self.conn.cursor(row_factory=dict_row) as cur:
-            cur.execute(query)  # type: ignore
+            try:
+                cur.execute(query)  # type: ignore
+            except Exception as err:
+                pass
             if cur.description:
                 result = cur.fetchall()
             else:

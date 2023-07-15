@@ -1,9 +1,11 @@
-import pytest
-from pg_mgt_utils.pg_client import PgClient
+import hmac
 from base64 import standard_b64encode
 from hashlib import pbkdf2_hmac, sha256
 from os import urandom
-import hmac
+
+import pytest
+
+from pg_mgt_utils.pg_client import PgClient
 
 
 def b64enc(b: bytes) -> str:
@@ -166,6 +168,13 @@ def test_revoke_database_permissions_from_role(pg_client):
     # Test revoking permissions from an existing role on a non-existing database
     with pytest.raises(Exception):
         pg_client.revoke_database_permissions_from_role('testuser', 'nonexistingdb', 'ALL')
+
+
+def test_drop_role(pg_client):
+    # Test dropping an existing role
+    pg_client.create_role('test_role')
+    pg_client.drop_role('test_role')
+    assert pg_client.check_user_exists('test_role') == False
 
 
 # def test_grant_default_permissions_to_role(pg_client):
