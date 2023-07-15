@@ -1,7 +1,7 @@
 [tool]
 [tool.poetry]
 name = "pg-mgt-utils"
-version = "0.1.0-dev"
+version = "0.1.1"
 homepage = "https://github.com/stevek-skzone/pg-mgt-utils"
 description = "PostgreSQL Mgt Utils."
 authors = ["Steve King <dev@skzone.org>"]
@@ -18,6 +18,7 @@ packages = [
     { include = "pg_mgt_utils" },
     { include = "tests", format = "sdist" },
 ]
+[tool.poetry_bumpversion.file."pg_mgt_utils/__init__.py"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -38,6 +39,7 @@ markupsafe = "=2.0.1"
 Jinja2 = "^2.11.3"
 
 [tool.poetry.group.dev.dependencies]
+poetry-bumpversion = "^0.3.1"
 click = "8.0.2"
 black  = "^21.5b2"
 isort  = "^5.8.0"
