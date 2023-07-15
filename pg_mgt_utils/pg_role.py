@@ -1,3 +1,4 @@
+# pylint: disable=line-too-long
 from datetime import datetime
 from typing import Any, List, Optional, Tuple
 
@@ -46,12 +47,12 @@ class PgRole:
             options = parse_options(options, 'role')
             query += ' ' + ' '.join([options])
         try:
-            self.conn.execute(sql.SQL(query).format(sql.Identifier(username), password))
-            logger.info(f"Created user {username}")
-        except Exception as e:
+            self.conn.execute(sql.SQL(query).format(sql.Identifier(username), password))  # type: ignore
+            logger.info("Created user %s", username)
+        except Exception as err:
             self.conn.rollback()
-            logger.error(f"Failed to create user {username}")
-            raise e
+            logger.error("Failed to create user %s", username)
+            raise err
 
     def drop_user(self, username: str) -> None:
         """
@@ -62,11 +63,11 @@ class PgRole:
         query = "DROP USER IF EXISTS {}"
         try:
             self.conn.execute(sql.SQL(query).format(sql.Identifier(username)))
-            logger.info(f"Dropped user {username}")
-        except Exception as e:
+            logger.info("Dropped user %s", username)
+        except Exception as err:
             self.conn.rollback()
-            logger.error(f"Failed to drop user {username}")
-            raise e
+            logger.error("Failed to drop user %s", username)
+            raise err
 
     def alter_user(
         self,
@@ -96,12 +97,12 @@ class PgRole:
             options = parse_options(options, 'role')
             query += ' ' + ' '.join([options])
         try:
-            self.conn.execute(sql.SQL(query).format(sql.Identifier(username), password))
-            logger.info(f"Altered user {username}")
-        except Exception as e:
+            self.conn.execute(sql.SQL(query).format(sql.Identifier(username), password))  # type: ignore
+            logger.info("Altered user %s", username)
+        except Exception as err:
             self.conn.rollback()
-            logger.error(f"Failed to alter user {username}")
-            raise e
+            logger.error("Failed to alter user %s", username)
+            raise err
 
     def create_role(self, rolename: str) -> None:
         """
@@ -112,10 +113,10 @@ class PgRole:
         query = "CREATE ROLE {}"
         try:
             self.conn.execute(sql.SQL(query).format(sql.Identifier(rolename)))
-            logger.info(f"Created role {rolename}")
-        except Exception as e:
-            logger.error(f"Failed to create role {rolename}: {e}")
-            raise e
+            logger.info("Created role %s", rolename)
+        except Exception as err:
+            logger.error("Failed to create role %s: %s", rolename, err)
+            raise err
 
     def drop_role(self, rolename: str) -> None:
         """
@@ -126,10 +127,10 @@ class PgRole:
         query = "DROP ROLE IF EXISTS {}"
         try:
             self.conn.execute(sql.SQL(query).format(sql.Identifier(rolename)))
-            logger.info(f"Dropped role {rolename}")
-        except Exception as e:
-            logger.error(f"Failed to drop role {rolename}: {e}")
-            raise e
+            logger.info("Dropped role %s", rolename)
+        except Exception as err:
+            logger.error("Failed to drop role %s: %s ", rolename, err)
+            raise err
 
     def add_user_to_role(self, rolename: str, username: str) -> None:
         """
@@ -141,10 +142,10 @@ class PgRole:
         query = "GRANT {} TO {}"
         try:
             self.conn.execute(sql.SQL(query).format(sql.Identifier(rolename), sql.Identifier(username)))
-            logger.info(f"Added user {username} to role {rolename}")
-        except Exception as e:
-            logger.error(f"Failed to add user {username} to role {rolename}: {e}")
-            raise e
+            logger.info("Added user %s to role %s", username, rolename)
+        except Exception as err:
+            logger.error("Failed to add user %s to role %s: %s", username, rolename, err)
+            raise err
 
     def check_user_exists(self, username: str) -> bool:
         """
@@ -157,9 +158,9 @@ class PgRole:
         try:
             result = self.conn.execute(query, (username,)).fetchone()
             return bool(result)
-        except Exception as e:
-            logger.error(f"Failed to check if user {username} exists: {e}")
-            raise e
+        except Exception as err:
+            logger.error("Failed to check if user %s exists: %s", username, err)
+            raise err
 
     def return_user_info(self, username: str) -> List[Tuple]:
         """
@@ -180,9 +181,9 @@ class PgRole:
             with self.conn.cursor(row_factory=dict_row) as cur:
                 result = cur.execute(query, (username,)).fetchall()
                 return result
-        except Exception as e:
-            logger.error(f"Failed to return info for user {username}: {e}")
-            raise e
+        except Exception as err:
+            logger.error("Failed to return info for user %s: %s", username, err)
+            raise err
 
     def add_users_to_role(self, rolename: str, usernames: List[str]) -> None:
         """
@@ -204,10 +205,10 @@ class PgRole:
         query = "REVOKE {} FROM {}"
         try:
             self.conn.execute(sql.SQL(query).format(sql.Identifier(rolename), sql.Identifier(username)))
-            logger.info(f"Removed user {username} from role {rolename}")
-        except Exception as e:
-            logger.error(f"Failed to remove user {username} from role {rolename}: {e}")
-            raise e
+            logger.info("Removed user %s from role %s", username, rolename)
+        except Exception as err:
+            logger.error("Failed to remove user %s from role %s: %s", username, rolename, err)
+            raise err
 
     def remove_users_from_role(self, rolename: str, usernames: List[str]) -> None:
         """
@@ -233,15 +234,17 @@ class PgRole:
         try:
             self.conn.execute(
                 sql.SQL(query).format(
-                    sql.SQL(parse_options(permissions, 'database', ',')),
+                    sql.SQL(parse_options(permissions, 'database', ',')),  # type: ignore
                     sql.Identifier(database),
                     sql.Identifier(rolename),
                 )
             )
-            logger.info(f"Granted {permissions} permissions on database {database} to role {rolename}")
-        except Exception as e:
-            logger.error(f"Failed to grant {permissions} permissions on database {database} to role {rolename}: {e}")
-            raise e
+            logger.info("Granted %s permissions on database %s to role %s", permissions, database, rolename)
+        except Exception as err:
+            logger.error(
+                "Failed to grant %s permissions on database %s to role %s: %s", permissions, database, rolename, err
+            )
+            raise err
 
     def revoke_database_permissions_from_role(self, rolename: str, database: str, permissions: str) -> None:
         """
@@ -257,50 +260,16 @@ class PgRole:
         try:
             self.conn.execute(
                 sql.SQL(query).format(
-                    sql.SQL(parse_options(permissions, 'database', ',')),
+                    sql.SQL(parse_options(permissions, 'database', ',')),  # type: ignore
                     sql.Identifier(database),
                     sql.Identifier(rolename),
                 )
             )
-            logger.info(f"Revoked {permissions} permissions on database {database} from role {rolename}")
-        except Exception as e:
-            logger.error(f"Failed to revoke {permissions} permissions on database {database} from role {rolename}: {e}")
-            raise e
+            logger.info("Revoked %s permissions on database %s from role %s", permissions, database, rolename)
+        except Exception as err:
+            logger.error(
+                "Failed to revoke %s permissions on database %s from role %s: %s", permissions, database, rolename, err
+            )
+            raise err
 
-    # TODO: This needs support for sequences, functions, and types.
-
-    # def grant_default_permissions_to_role(self, rolename: str, schema: str, permissions: str) -> None:
-    #     """
-    #     Grants the specified permissions on the specified schema to an existing PostgreSQL role with the specified rolename.
-
-    #     :param rolename: The name of the role to grant permissions to.
-    #     :param schema: The name of the schema to grant permissions on.
-    #     :param permissions: The permissions to grant.
-    #     """
-    #     query = "ALTER DEFAULT PRIVILEGES IN SCHEMA {} GRANT {} ON TABLES TO {}"
-    #     try:
-    #         self.conn.execute(sql.SQL(query).format(sql.Identifier(schema),
-    #                                                 sql.SQL(parse_options(permissions,'object',',')),
-    #                                                 sql.Identifier(rolename)))
-    #         logger.info(f"Granted {permissions} permissions on schema {schema} to role {rolename}")
-    #     except Exception as e:
-    #         logger.error(f"Failed to grant {permissions} permissions on schema {schema} to role {rolename}: {e}")
-    #         raise e
-
-    # def revoke_default_permissions_from_role(self, rolename: str, schema: str, permissions: str) -> None:
-    #     """
-    #     Revokes the specified permissions on the specified schema from an existing PostgreSQL role with the specified rolename.
-
-    #     :param rolename: The name of the role to revoke permissions from.
-    #     :param schema: The name of the schema to revoke permissions on.
-    #     :param permissions: The permissions to revoke.
-    #     """
-    #     query = "ALTER DEFAULT PRIVILEGES IN SCHEMA {} REVOKE {} ON TABLES FROM {}"
-    #     try:
-    #         self.conn.execute(sql.SQL(query).format(sql.Identifier(schema),
-    #                                                 sql.SQL(parse_options(permissions,'object',',')),
-    #                                                 sql.Identifier(rolename)))
-    #         logger.info(f"Revoked {permissions} permissions on schema {schema} from role {rolename}")
-    #     except Exception as e:
-    #         logger.error(f"Failed to revoke {permissions} permissions on schema {schema} from role {rolename}: {e}")
-    #         raise e
+    # ToDo: Add support for object-level permissions and default privileges

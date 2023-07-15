@@ -1,3 +1,4 @@
+# pylint: disable=line-too-long
 import logging
 import os
 import re
@@ -33,18 +34,26 @@ VALID_OBJ_PRIVS = frozenset(['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE',
 
 
 class InvalidOptionsError(Exception):
-    pass
+    """Exception raised when invalid options are provided.
+
+    Attributes:
+        message -- explanation of the error
+    """
+
+    def __init__(self, message="Invalid options provided."):
+        self.message = message
+        super().__init__(self.message)
 
 
-def _return_valid_options(type: str) -> frozenset:
+def _return_valid_options(option_type: str) -> frozenset:
     """
     Returns a frozenset of valid options for a role.
 
-    :param type: A option type (e.g. database, role, object).
+    :param option_type: A option type (e.g. database, role, object).
     :return: A frozenset of valid options.
     """
     choice = {"database": VALID_DB_PRIVS, "role": VALID_ROLES, "object": VALID_OBJ_PRIVS}
-    return choice[type]
+    return choice[option_type]
 
 
 def parse_options(options: str, option_type: str, separator: str = ' ') -> str:
@@ -66,7 +75,7 @@ def parse_options(options: str, option_type: str, separator: str = ' ') -> str:
     options_set = frozenset(option.upper() for option in options.split(','))
 
     if not options_set.issubset(valid_options):
-        raise InvalidOptionsError('Invalid options specified: %s' % ' '.join(options_set.difference(valid_options)))
+        raise InvalidOptionsError(f"Invalid options specified: {' '.join(options_set.difference(valid_options))}")
 
     return separator.join(options_set)
 
@@ -87,5 +96,5 @@ def validate_encoding(encoding: str) -> bool:
 
     if re.match(encoding_regex, encoding):
         return True
-    else:
-        raise InvalidOptionsError(f'Invalid encoding specified: {encoding}')
+
+    raise InvalidOptionsError(f'Invalid encoding specified: {encoding}')
