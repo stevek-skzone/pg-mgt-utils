@@ -1,10 +1,10 @@
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+# pylint: disable=line-too-long
+from typing import Any, Dict, List, Optional
 
 from psycopg import sql
 from psycopg.rows import dict_row
 
-from pg_mgt_utils.pg_common import logger, parse_options, validate_encoding
+from pg_mgt_utils.pg_common import logger, validate_encoding
 
 
 class PgDatabase:
@@ -36,20 +36,20 @@ class PgDatabase:
         :param connection_limit: The maximum number of concurrent connections allowed for the new database.
 
         """
-        query = "CREATE DATABASE {}"
+        query = sql.SQL("CREATE DATABASE {}").format(sql.Identifier(dbname))
         if owner:
-            query += f' OWNER {sql.Identifier(owner)}'
+            query = query + sql.SQL(' OWNER {}').format(sql.Identifier(owner))
         if encoding and validate_encoding(encoding):
-            query += f' ENCODING \'{encoding}\''
+            query = query + sql.SQL(" ENCODING {}").format(sql.quote(encoding))
         if connection_limit:
-            query += f' CONNECTION LIMIT {connection_limit}'
+            query = query + sql.SQL(' CONNECTION LIMIT {}').format(sql.Literal(connection_limit))
         try:
-            self.conn.execute(sql.SQL(query).format(sql.Identifier(dbname)))
-            logger.info(f"Created database {dbname}")
-        except Exception as e:
+            self.conn.execute(query)
+            logger.info("Created database %s", dbname)
+        except Exception as err:
             self.conn.rollback()
-            logger.error(f"Failed to create database {dbname}")
-            raise e
+            logger.error("Failed to create database %s", dbname)
+            raise err
 
     def drop_database(self, dbname: str) -> None:
         """
@@ -60,11 +60,11 @@ class PgDatabase:
         query = "DROP DATABASE IF EXISTS {}"
         try:
             self.conn.execute(sql.SQL(query).format(sql.Identifier(dbname)))
-            logger.info(f"Dropped database {dbname}")
-        except Exception as e:
+            logger.info("Dropped database %s", dbname)
+        except Exception as err:
             self.conn.rollback()
-            logger.error(f"Failed to drop database {dbname}")
-            raise e
+            logger.error("Failed to drop database %s", dbname)
+            raise err
 
     def alter_database(
         self,
@@ -81,20 +81,20 @@ class PgDatabase:
         :param encoding: The character encoding to use for the new database.
         :param connection_limit: The maximum number of concurrent connections allowed for the new database.
         """
-        query = "ALTER DATABASE {}"
+        query = sql.SQL("ALTER DATABASE {}").format(sql.Identifier(dbname))
         if owner:
-            query += f' OWNER {sql.Identifier(owner)}'
+            query = query + sql.SQL(' OWNER {}').format(sql.Identifier(owner))
         if encoding and validate_encoding(encoding):
-            query += f' ENCODING \'{encoding}\''
+            query = query + sql.SQL(" ENCODING {}").format(sql.quote(encoding))
         if connection_limit:
-            query += f' CONNECTION LIMIT {connection_limit}'
+            query = query + sql.SQL(' CONNECTION LIMIT {}').format(sql.Literal(connection_limit))
         try:
-            self.conn.execute(sql.SQL(query).format(sql.Identifier(dbname)))
-            logger.info(f"Altered database {dbname}")
-        except Exception as e:
+            self.conn.execute(query)
+            logger.info("Altered database %s", dbname)
+        except Exception as err:
             self.conn.rollback()
-            logger.error(f"Failed to alter database {dbname}")
-            raise e
+            logger.error("Failed to alter database %s", dbname)
+            raise err
 
     def check_database_exists(self, dbname: str) -> bool:
         """
@@ -107,9 +107,9 @@ class PgDatabase:
         try:
             result = self.conn.execute(query, (dbname,)).fetchone()
             return bool(result[0])
-        except Exception as e:
-            logger.error(f"Failed to check if user {dbname} exists: {e}")
-            raise e
+        except Exception as err:
+            logger.error("Failed to check if user %s exists: %s", dbname, err)
+            raise err
 
     def return_database_info(self, dbname: str) -> List[Dict[str, Any]]:
         """
@@ -127,6 +127,6 @@ class PgDatabase:
             with self.conn.cursor(row_factory=dict_row) as cur:
                 result = cur.execute(query, (dbname,)).fetchall()
                 return result
-        except Exception as e:
-            logger.error(f"Failed to return info for database {dbname}: {e}")
-            raise e
+        except Exception as err:
+            logger.error("Failed to return info for database %s: %s", dbname, err)
+            raise err
