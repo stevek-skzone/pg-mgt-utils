@@ -36,15 +36,15 @@ class PgDatabase:
         :param connection_limit: The maximum number of concurrent connections allowed for the new database.
 
         """
-        query = "CREATE DATABASE {}"
+        query = sql.SQL("CREATE DATABASE {}").format(sql.Identifier(dbname))
         if owner:
-            query += f' OWNER {sql.Identifier(owner)}'
+            query = query + sql.SQL(' OWNER {}').format(sql.Identifier(owner))
         if encoding and validate_encoding(encoding):
-            query += f' ENCODING \'{encoding}\''
+            query = query + sql.SQL(" ENCODING {}").format(sql.quote(encoding))
         if connection_limit:
-            query += f' CONNECTION LIMIT {connection_limit}'
+            query = query + sql.SQL(' CONNECTION LIMIT {}').format(sql.Literal(connection_limit))
         try:
-            self.conn.execute(sql.SQL(query).format(sql.Identifier(dbname)))  # type: ignore
+            self.conn.execute(query)
             logger.info("Created database %s", dbname)
         except Exception as err:
             self.conn.rollback()
@@ -81,15 +81,15 @@ class PgDatabase:
         :param encoding: The character encoding to use for the new database.
         :param connection_limit: The maximum number of concurrent connections allowed for the new database.
         """
-        query = "ALTER DATABASE {}"
+        query = sql.SQL("ALTER DATABASE {}").format(sql.Identifier(dbname))
         if owner:
-            query += f' OWNER {sql.Identifier(owner)}'
+            query = query + sql.SQL(' OWNER {}').format(sql.Identifier(owner))
         if encoding and validate_encoding(encoding):
-            query += f' ENCODING \'{encoding}\''
+            query = query + sql.SQL(" ENCODING {}").format(sql.quote(encoding))
         if connection_limit:
-            query += f' CONNECTION LIMIT {connection_limit}'
+            query = query + sql.SQL(' CONNECTION LIMIT {}').format(sql.Literal(connection_limit))
         try:
-            self.conn.execute(sql.SQL(query).format(sql.Identifier(dbname)))  # type: ignore
+            self.conn.execute(query)
             logger.info("Altered database %s", dbname)
         except Exception as err:
             self.conn.rollback()
