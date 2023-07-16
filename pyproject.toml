@@ -1,7 +1,7 @@
 [tool]
 [tool.poetry]
 name = "pg-mgt-utils"
-version = "0.1.1"
+version = "0.1.2"
 homepage = "https://github.com/stevek-skzone/pg-mgt-utils"
 description = "PostgreSQL Mgt Utils."
 authors = ["Steve King <dev@skzone.org>"]
