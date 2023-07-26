@@ -1,13 +1,19 @@
 # pylint: disable=line-too-long
+import hmac
 import logging
 import os
 import re
+import secrets
+import string
+from base64 import standard_b64encode
+from hashlib import pbkdf2_hmac, sha256
+from os import urandom
+from typing import Optional
 
 log_level = os.environ.get('LOG_LEVEL', 'INFO')
 logging.basicConfig(level=log_level)
 
 logger = logging.getLogger(__name__)
-
 
 VALID_ROLES = frozenset(
     [
@@ -43,6 +49,49 @@ class InvalidOptionsError(Exception):
     def __init__(self, message="Invalid options provided."):
         self.message = message
         super().__init__(self.message)
+
+
+def _b64enc(byte_str: bytes) -> str:
+    return standard_b64encode(byte_str).decode('utf8')
+
+
+def _generate_password(length: int) -> str:
+    alphabet = string.ascii_letters + string.digits + string.punctuation
+    while True:
+        password = ''.join(secrets.choice(alphabet) for i in range(length))
+        if (
+            any(c.islower() for c in password)
+            and any(c.isupper() for c in password)
+            and any(c.isdigit() for c in password)
+            and any(c in string.punctuation for c in password)
+        ):
+            break
+    return password
+
+
+def pg_scram_sha256(passwd: Optional[str] = None) -> str:
+    """Generate a SCRAM-SHA-256 password hash.
+
+    Args:
+        passwd: The password to hash. If not provided, a random password will be generated.
+
+    Returns:
+        A SCRAM-SHA-256 password hash.
+
+    Raises:
+        None
+    """
+    if passwd is None:
+        passwd = _generate_password(20)
+    salt_size = 16
+    digest_len = 32
+    iterations = 4096
+    salt = urandom(salt_size)
+    digest_key = pbkdf2_hmac('sha256', passwd.encode('utf8'), salt, iterations, digest_len)
+    client_key = hmac.digest(digest_key, 'Client Key'.encode('utf8'), 'sha256')
+    stored_key = sha256(client_key).digest()
+    server_key = hmac.digest(digest_key, 'Server Key'.encode('utf8'), 'sha256')
+    return f'SCRAM-SHA-256${iterations}:{_b64enc(salt)}' f'${_b64enc(stored_key)}:{_b64enc(server_key)}'
 
 
 def _return_valid_options(option_type: str) -> frozenset:
