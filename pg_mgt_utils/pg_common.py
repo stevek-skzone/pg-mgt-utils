@@ -83,6 +83,9 @@ def pg_scram_sha256(passwd: Optional[str] = None) -> str:
     """
     if passwd is None:
         passwd = _generate_password(20)
+
+    if len(passwd) < 12:
+        raise ValueError('Password must be at least 12 characters long.')
     salt_size = 16
     digest_len = 32
     iterations = 4096
