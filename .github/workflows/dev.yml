@@ -34,7 +34,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          apt-get install -y python3-poetry
+          sufo apt-get install -y python3-poetry
           poetry install
 
       - name: test with tox
