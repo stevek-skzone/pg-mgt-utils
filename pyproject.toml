@@ -49,6 +49,7 @@ isort = "^5.13.2"
 poetry-bumpversion = "^0.3.2"
 twine = "^5.1.1"
 black = "^24.4.2"
+docker = "^7.1.0"
 
 
 [tool.black]
