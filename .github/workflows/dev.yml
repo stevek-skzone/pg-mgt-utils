@@ -35,7 +35,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt -y install pipx
+          sudo apt -y install pipx # docker docker-compose-v2
           pipx ensurepath
           pipx install poetry
           poetry install

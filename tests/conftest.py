@@ -20,16 +20,17 @@ def docker_compose_file(pytestconfig):
 @pytest.fixture(scope="session")
 def docker_compose(docker_client, docker_compose_file):
     # Make sure the Docker containers are stopped and removed before starting
-    subprocess.run(["docker-compose", "down"], cwd=os.path.dirname(os.path.abspath(__file__)))
+    subprocess.run(["docker", "compose", "down"], cwd=os.path.dirname(os.path.abspath(__file__)))
     # Start the Docker containers
-    subprocess.run(["docker-compose", "up", "-d"], cwd=os.path.dirname(os.path.abspath(__file__)))
+    subprocess.run(["docker", "compose", "up", "-d"], cwd=os.path.dirname(os.path.abspath(__file__)))
+
 
     # Wait for the containers to start up
     max_retries = 10
     retry_count = 0
     while retry_count < max_retries:
         try:
-            postgres_container = docker_client.containers.get("pg-mgt-utils_postgres_1")
+            postgres_container = docker_client.containers.get("pg-mgt-utils-postgres-1")
             if postgres_container.status == "running":
                 break
         except:
