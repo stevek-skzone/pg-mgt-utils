@@ -2,7 +2,6 @@ site_name: pg-mgt-utils
 site_url: https://stevek-skzone.github.io/pg-mgt-utils
 repo_url: https://github.com/stevek-skzone/pg-mgt-utils
 repo_name: stevek-skzone/pg-mgt-utils
-#strict: true
 nav:
   - Home: index.md
   - Installation: installation.md
@@ -12,7 +11,6 @@ nav:
 theme:
   name: material
   language: en
-  #logo: assets/logo.png
   palette:
     scheme: preference
     primary: indigo
@@ -23,8 +21,8 @@ theme:
     - navigation.tabs.sticky
 markdown_extensions:
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.critic
   - pymdownx.caret
   - pymdownx.mark
@@ -42,15 +40,14 @@ markdown_extensions:
   - toc:
       baselevel: 2
       permalink: true
-      slugify: !!python/name:pymdownx.slugs.uslugify
   - meta
+watch:
+  - pg_mgt_utils
 plugins:
   - include-markdown
   - search:
       lang: en
   - mkdocstrings:
-      watch:
-        - pg_mgt_utils
 extra:
   social:
     - icon: fontawesome/brands/twitter
@@ -66,9 +63,3 @@ extra:
       name: Github
     - icon: material/email
       link: "mailto:dev@skzone.org"
-  # to enable disqus, uncomment the following and put your disqus id below
-  # disqus: disqus_id
-# uncomment the following and put your google tracking id below to enable GA
-#google_analytics:
-  #- UA-xxx
-  #- auto
