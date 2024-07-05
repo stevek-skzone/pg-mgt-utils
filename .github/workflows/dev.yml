@@ -34,7 +34,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get install -y python3-poetry
+          sudo apt update
+          sudo apt -y install pipx
+          pipx ensurepath
+          pipx install poetry
           poetry install
 
       - name: test with tox
